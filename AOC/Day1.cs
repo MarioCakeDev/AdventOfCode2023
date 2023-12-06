@@ -6,11 +6,12 @@ public partial class Day1
 {
     public static string Part1(string input)
     {
-        Regex numberRegex = new("\\d");
         return input.Split("\n").Select(row =>
         {
-            MatchCollection matches = numberRegex.Matches(row);
-            return int.Parse($"{matches.First().Value}{matches.Last().Value}");
+            MatchCollection matches = NumberRegex().Matches(row);
+            int tens = int.Parse(matches[0].Value);
+            int ones = int.Parse(matches[^1].Value);
+            return tens * 10 + ones;
         }).Sum().ToString();
     }
 
@@ -18,7 +19,7 @@ public partial class Day1
     {
         return input.Split("\r\n").Select(row =>
         {
-            MatchCollection matches = NumberRegex().Matches(row);
+            MatchCollection matches = NumberStringRegex().Matches(row);
             int tens = AsNumber(matches[0].Groups[1].Value);
             int ones = AsNumber(matches[^1].Groups[1].Value);
             return tens * 10 + ones;
@@ -48,5 +49,8 @@ public partial class Day1
     }
 
     [GeneratedRegex("(?=(one|two|three|four|five|six|seven|eight|nine|\\d))", RegexOptions.Compiled)]
+    private static partial Regex NumberStringRegex();
+
+    [GeneratedRegex("\\d")]
     private static partial Regex NumberRegex();
 }
