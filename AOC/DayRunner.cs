@@ -27,6 +27,6 @@ public static class DayRunner
         }
 
         double averageMilliseconds = totalMilliseconds / times;
-        Console.WriteLine($"{label}: {averageMilliseconds.ToString("F2")}ms (average over {times} runs)");
+        Console.WriteLine($"{label}: {averageMilliseconds:F2}ms (average over {times} runs)");
     }
 }

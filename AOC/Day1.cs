@@ -2,7 +2,7 @@
 
 namespace AOC;
 
-public class Day1
+public partial class Day1
 {
     public static string Part1(string input)
     {
@@ -16,33 +16,37 @@ public class Day1
 
     public static string Part2(string input)
     {
-        Dictionary<string, int> numbersAsText = new()
+        return input.Split("\r\n").Select(row =>
         {
-            { "one", 1 },
-            { "two", 2 },
-            { "three", 3 },
-            { "four", 4 },
-            { "five", 5 },
-            { "six", 6 },
-            { "seven", 7 },
-            { "eight", 8 },
-            { "nine", 9 }
-        };
-        Regex numberRegex = new($"(?=({string.Join("|", numbersAsText.Keys)}|\\d))", RegexOptions.ECMAScript | RegexOptions.Multiline);
-        return input.Split("\n").Select(row =>
-        {
-            MatchCollection matches = numberRegex.Matches(row);
-            return int.Parse($"{AsNumber(matches.First().Groups[1].Value)}{AsNumber(matches.Last().Groups[1].Value)}");
+            MatchCollection matches = NumberRegex().Matches(row);
+            int tens = AsNumber(matches[0].Groups[1].Value);
+            int ones = AsNumber(matches[^1].Groups[1].Value);
+            return tens * 10 + ones;
         }).Sum().ToString();
 
-        string AsNumber(string input)
+        int AsNumber(string input)
         {
             if (input.Length == 1)
             {
-                return input;
+                return int.Parse(input);
             }
 
-            return numbersAsText[input].ToString();
+            char firstChar = input[0];
+            char secondChar = input[1];
+            switch (firstChar)
+            {
+                case 'o': return 1;
+                case 'e': return 8;
+                case 'n': return 9;
+                case 't': return secondChar == 'w' ? 2 : 3;
+                case 'f': return secondChar == 'o' ? 4 : 5;
+                case 's': return secondChar == 'i' ? 6 : 7;
+            }
+
+            throw new Exception();
         }
     }
+
+    [GeneratedRegex("(?=(one|two|three|four|five|six|seven|eight|nine|\\d))", RegexOptions.Compiled)]
+    private static partial Regex NumberRegex();
 }
