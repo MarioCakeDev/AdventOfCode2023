@@ -29,7 +29,7 @@ public static class DayRunner
 
     private static void RunAndCalculateAverage(PartDelegate func, string input, int times, string label)
     {
-        double totalMilliseconds = 0;
+        double totalMicroseconds = 0;
 
         string result = "";
         for (int i = 0; i < times; i++)
@@ -37,10 +37,10 @@ public static class DayRunner
             Stopwatch stopwatch = Stopwatch.StartNew();
             result = func(input);
             stopwatch.Stop();
-            totalMilliseconds += stopwatch.Elapsed.TotalMilliseconds;
+            totalMicroseconds += stopwatch.Elapsed.TotalMicroseconds;
         }
 
-        double averageMilliseconds = totalMilliseconds / times;
-        Console.WriteLine($"{label}: {averageMilliseconds:F2}ms (average over {times} runs), Result: {result}");
+        double averageMicroseconds = totalMicroseconds / times;
+        Console.WriteLine($"{label}: {averageMicroseconds:F2}µs (average over {times} runs), Result: {result}");
     }
 }
