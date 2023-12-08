@@ -129,7 +129,6 @@ public class Day5
                 ConversionRange[] conversionRanges = conversion.Ranges.Where(range => HasOverlaps(range, ranges))
                     .ToArray();
 
-                IEnumerable<LongRange> rangesWithoutOverlaps = innerRanges.Where(range => !conversionRanges.All(conversionRange => conversionRange.SourceRange.Overlaps(range)));
                 ranges = innerRanges.SelectMany(range =>
                     {
                         List<LongRange> ranges = [range];
@@ -144,19 +143,19 @@ public class Day5
                             {
                                 newRanges.Add(new LongRange(
                                     lastRange.Start,
-                                    overlappingConversionRange.SourceRange.Start - 1
+                                    overlappingConversionRange.SourceRange.Start
                                 ));
                             }
 
                             newRanges.Add(new LongRange(
-                                Math.Max(lastRange.Start, overlappingConversionRange.SourceRange.Start),
-                                Math.Min(lastRange.End, overlappingConversionRange.SourceRange.End)
+                                overlappingConversionRange.Map(Math.Max(lastRange.Start, overlappingConversionRange.SourceRange.Start)),
+                                overlappingConversionRange.Map(Math.Min(lastRange.End, overlappingConversionRange.SourceRange.End))
                             ));
 
                             if (lastRange.End > overlappingConversionRange.SourceRange.End)
                             {
                                 newRanges.Add(new LongRange(
-                                    overlappingConversionRange.SourceRange.End + 1,
+                                    overlappingConversionRange.SourceRange.End,
                                     lastRange.End
                                 ));
                             }
@@ -167,8 +166,6 @@ public class Day5
 
                         return ranges;
                     })
-                    .Union(rangesWithoutOverlaps)
-                    .OrderBy(range => range.Start)
                     .ToArray();
                 currentConversion = conversion.To;
             }

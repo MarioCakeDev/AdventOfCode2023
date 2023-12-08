@@ -6,7 +6,7 @@ namespace AOC;
 
 public static class DayRunner
 {
-    public static void Run(int times)
+    public static void Run(int times, int skip = 0)
     {
         Type[] validDayTypes = typeof(DayRunner).Assembly.GetTypes()
             .Where(type => Regex.IsMatch(type.Name, "^Day([1-9]|[1-2][0-9])$"))
@@ -15,7 +15,7 @@ public static class DayRunner
                 type.GetMethod("Part2") is { IsStatic: true } part2 && part2.ReturnParameter.ParameterType == typeof(string) && part2.GetParameters() is [{ } part2Parameter] && part2Parameter.ParameterType == typeof(string)
             ).OrderBy(type => int.Parse(type.Name[3..])).ToArray();
 
-        foreach (Type dayType in validDayTypes)
+        foreach (Type dayType in validDayTypes.Skip(skip))
         {
             MethodInfo part1 = dayType.GetMethod("Part1")!;
             MethodInfo part2 = dayType.GetMethod("Part2")!;
