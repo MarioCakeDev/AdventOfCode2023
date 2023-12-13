@@ -11,7 +11,7 @@ public class Day7
                 char[] cards = parts[0].ToCharArray();
                 string bid = parts[1];
 
-                Dictionary<int, char[]> batching = cards.GroupBy(card => card)
+                Dictionary<int, int> batching = cards.GroupBy(card => card)
                     .ToDictionary(
                         group => group.Key,
                         group => group.Count()
@@ -19,13 +19,11 @@ public class Day7
                     .GroupBy(pair => pair.Value)
                     .ToDictionary(
                         group => group.Key,
-                        group => group.Select(g => g.Key).ToArray()
+                        group => group.Count()
                     );
 
-                char[][] someOfAKind = Enumerable.Range(0, cards.Length)
-                    .Select(index => batching.TryGetValue(cards.Length - index, out char[]? batchCards)
-                        ? batchCards
-                        : [])
+                int[] someOfAKind = Enumerable.Range(0, cards.Length)
+                    .Select(index => batching.GetValueOrDefault(cards.Length - index, 0))
                     .ToArray();
 
                 return new Game(new Score(someOfAKind, cards), int.Parse(bid));
@@ -38,12 +36,52 @@ public class Day7
 
     public static string Part2(string input)
     {
-        return Part1(input);
+        return input.Split("\r\n")
+            .Select(gameString =>
+            {
+                string[] parts = gameString.Split(" ");
+                char[] cards = parts[0].ToCharArray();
+                string bid = parts[1];
+
+                int jokers = cards.Count(card => card == 'J');
+
+                Dictionary<int, int> batching = cards
+                    .Where(card => card != 'J')
+                    .GroupBy(card => card)
+                    .Select(group => group.Count())
+                    .OrderByDescending(cardCount => cardCount)
+                    .Select(cardCount =>
+                    {
+                        int countWithJokers = Math.Min(cards.Length, cardCount + jokers);
+                        jokers = cardCount + jokers - countWithJokers;
+                        return countWithJokers;
+                    })
+                    .GroupBy(cardCount => cardCount)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.Count()
+                    );
+
+                if (jokers == cards.Length)
+                {
+                    batching[cards.Length] = 1;
+                }
+
+                int[] someOfAKind = Enumerable.Range(0, cards.Length)
+                    .Select(index => batching.GetValueOrDefault(cards.Length - index, 0))
+                    .ToArray();
+
+                return new Game(new Score(someOfAKind, cards, true), int.Parse(bid));
+            })
+            .OrderByDescending(game => game.Score)
+            .Select((game, index) => game.Bid * (index + 1))
+            .Sum()
+            .ToString();
     }
 
     private record Game(Score Score, int Bid);
 
-    private record Score(char[][] CardsCollection, char[] OriginalCards) : IComparable<Score>
+    private record Score(int[] CardGroupCounts, char[] OriginalCards, bool WithJokers = false) : IComparable<Score>
     {
         public int CompareTo(Score? other)
         {
@@ -52,7 +90,7 @@ public class Day7
                 return -1;
             }
 
-            foreach ((char[] OurCards, char[] OtherCards) kinds in CardsCollection.Zip(other.CardsCollection).Take(OriginalCards.Length - 1))
+            foreach ((int OurCards, int OtherCards) kinds in CardGroupCounts.Zip(other.CardGroupCounts).Take(OriginalCards.Length - 1))
             {
                 int? comparison = Compare(kinds.OurCards, kinds.OtherCards);
                 if (comparison is not null)
@@ -80,14 +118,14 @@ public class Day7
             return 0;
         }
 
-        private static int? Compare(IReadOnlyCollection<char> our, IReadOnlyCollection<char> other)
+        private static int? Compare(int our, int other)
         {
-            if (our.Count > other.Count)
+            if (our > other)
             {
                 return -1;
             }
 
-            if (our.Count < other.Count)
+            if (our < other)
             {
                 return 1;
             }
@@ -95,13 +133,13 @@ public class Day7
             return null;
         }
 
-        private static int CalculateValue(IEnumerable<char> cards)
+        private int CardAsNumber(char card)
         {
-            return cards.Sum(CardAsNumber);
-        }
+            if (WithJokers && card == 'J')
+            {
+                return 0;
+            }
 
-        private static int CardAsNumber(char card)
-        {
             return card switch
             {
                 '2' => 1,
